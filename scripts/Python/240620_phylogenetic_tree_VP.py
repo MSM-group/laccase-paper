@@ -5,7 +5,7 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 import random
 
-data = pd.read_csv("data/laccases_combined_analysis/MCO1_homolog_table.csv")
+data = pd.read_csv("data/laccases_combined_analysis/1103_laccase_taxonomy_phylum_consolidated_SR.csv")
 data['phylum_clean'] = data['phylum'].str.split('__').str[1]
 data['phylum_clean'] = data['phylum_clean'].str.split('_').str[0]
 #data.loc[data['phylum_clean'].isna(), 'phylum_clean'] = 'Unclassified'
