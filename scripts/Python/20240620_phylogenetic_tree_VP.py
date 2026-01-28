@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.colors as mcolors
 import random
+import glasbey
 
 data = pd.read_csv("data/laccases_combined_analysis/1103_laccase_taxonomy_phylum_consolidated_SR.csv")
 data['phylum_clean'] = data['phylum'].str.split('__').str[1]
@@ -15,15 +16,16 @@ t = TreeNode(r"data/laccases_combined_analysis/1103_aligned_laccase_seqs_fasttre
              ,format =1)
 
 phyla = data['phylum_clean'].unique().tolist()
+#selected_colors = glasbey.create_palette(palette_size=len(phyla), lightness_bounds=(20, 45), chroma_bounds=(40, 55))
 
-# Choose a color-blind friendly palette
-# For instance, 'glasbey' is a good option for distinct colors
-colors = sns.color_palette("cubehelix", 5+len(phyla))
-# Select the first 17 colors from the palette
-hex_colors = [mcolors.to_hex(color) for color in colors]
-selected_colors = hex_colors[4:-1]
-random.shuffle(selected_colors)
-# Plot the colors
+selected_colors = []
+with open("output/20260119_hex_colors.txt", "r") as f:
+    for line in f:
+        line = line.strip('\n')
+        selected_colors.append(line)
+
+
+
 sns.palplot(selected_colors)
 plt.show()
 
@@ -45,40 +47,38 @@ def create_legend(colours_dict, output_path):
 
 node_styles = {}
 
-# Function to apply custom branch colors
 def apply_colors(node):
-    if node.name == 'YAOCHUN_JAGNTG010000097.1':
-        node.img_style['shape'] = 'circle'
-        node.img_style['size'] = 50
-        node.img_style["bgcolor"] = 'red'
-        label_face = TextFace("MCO1", fsize=30, fgcolor="red")
-        node.add_face(label_face, column=0, position="branch-right")
-    else:
-        if node.is_leaf() and node.name in color_map:
-            node.img_style["bgcolor"] = color_map[node.name]
 
+    node_dict = {'YAOCHUN_JAGNTG010000097.1' : 'MCO1', 'HYV56308.1' : 'aMCO', 'HEY7867587.1' : 'mMCO'}
+    if node.name in node_dict.keys():
+        print(f"{node.name} found")
+        node.img_style['bgcolor'] = 'black'
+        # label_face = TextFace(node_dict[node.name], fsize=50, fgcolor="red", bold=True, tight_text=False)
+        # label_face.margin_left = 200
+
+        # faces.add_face_to_node(label_face, node, column=1, position="branch-right")
+
+    elif node.is_leaf() and node.name in color_map:
+       node.img_style["bgcolor"] = color_map[node.name]
 
 # Apply the custom branch coloring function to the tree
-#t.img_style["size"] = 0  # Hide default node dots
-# Apply the custom branch coloring function to the tree
-t.traverse(apply_colors)
+
 
 # Create a TreeStyle object and apply the coloring function using on_iter
 ts = TreeStyle()
-ts.show_leaf_name = True
+ts.show_leaf_name = False
 ts.layout_fn = apply_colors
 ts.mode = "c" # Set the tree type to circular with "c" value for the mode
 ts.arc_start = 0  # Set the starting angle
 ts.arc_span = 360
 
-# query_leaf_name = 'YAOCHUN_JAGNTG010000097.1'
-# node = t&query_leaf_name   # "&" is used to retrieve a node by name
-# N = AttrFace("name", fsize=30)
-# node.add_face(N, 0, position="aligned")
+
+ts.allow_face_overlap = True
 
 
-t.render("output/20240628_laccase_seqs_fasttree_VP_v4.png", w=600, dpi=300, tree_style=ts)
-create_legend(phylum_color, "output/20240628_laccase_seqs_fasttree_legend_VP_v4.png")
-with open("output/20240628_selected_colors_hex_list_order_v4.txt", "w") as f:
+t.render("output/20260120_laccase_seqs_fasttree_VP_no_txt_v8.svg", w=3000, dpi=600, tree_style=ts)
+t.render("output/20260120_laccase_seqs_fasttree_VP_no_txt_v8.png", w=3000, dpi=600, tree_style=ts)
+create_legend(phylum_color, "output/20260120_laccase_seqs_fasttree_legend_VP_v8.svg")
+with open("output/20260120_selected_colors_hex_list_order_v8.txt", "w") as f:
     f.write('\n'.join(selected_colors))
 print('done')
